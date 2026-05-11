@@ -44,11 +44,21 @@ if "registros_presupuesto" not in st.session_state:
 # =====================================================
 
 albaranes = [
-    "ALB-2025-001",
-    "ALB-2025-002",
-    "ALB-2025-003",
-    "ALB-2025-004",
-    "ALB-2025-005"
+    "ALB-2026-001",
+    "ALB-2026-002",
+    "ALB-2026-003",
+    "ALB-2026-004",
+    "ALB-2026-005",
+    "ALB-2026-006",
+    "ALB-2026-007",
+    "ALB-2026-008",
+    "ALB-2026-009",
+    "ALB-2026-010",
+    "ALB-2026-011",
+    "ALB-2026-012",
+    "ALB-2026-013",
+    "ALB-2026-014",
+    "ALB-2026-015"
 ]
 
 # =====================================================
@@ -212,7 +222,7 @@ EMAIL_REMITENTE = "nunezs.daniel@alumnos25.fundacionmasaveu.com"
 
 PASSWORD_EMAIL = "zvbhfagykqjpjubo"
 
-EMAIL_DESTINO = "ana@cfundacionmasaveu.com"
+EMAIL_DESTINO = "ana@fundacionmasaveu.com"
 
 # =====================================================
 # FUNCIÓN ENVIAR EMAIL
