@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 import smtplib
 from email.message import EmailMessage
 
 # =====================================================
-# CONFIGURACIÓN DE LA APP
+# CONFIGURACIÓN GENERAL
 # =====================================================
 
 st.set_page_config(
-    page_title="Seguimiento de Presupuesto",
-    page_icon="💰",
+    page_title="Seguimiento de Obra",
+    page_icon="⚡",
     layout="centered"
 )
 
@@ -18,88 +18,99 @@ st.set_page_config(
 # LOGO EMPRESA
 # =====================================================
 
-st.image(
-    "logo.png",
-    width=350
-)
+st.image("logo.png", width=250)
 
-# =====================================================
-# TÍTULOS
-# =====================================================
-
-st.title("💰 Seguimiento de Presupuesto")
+st.title("📊 Seguimiento de Obra")
 st.subheader("SANTANO S.L. - OBRA ELÉCTRICA")
 
 st.divider()
 
 # =====================================================
-# MEMORIA TEMPORAL
+# MEMORIA DE REGISTROS
 # =====================================================
 
-if "registros_presupuesto" not in st.session_state:
-    st.session_state.registros_presupuesto = []
+if "registros" not in st.session_state:
+    st.session_state.registros = []
 
 # =====================================================
-# FORMULARIO
+# CONTADOR DE ALBARANES
 # =====================================================
 
-st.header("📋 Nuevo registro")
+if "contador_albaran" not in st.session_state:
+    st.session_state.contador_albaran = 1
 
-numero_albaran = st.text_input(
-    "🧾 Número de albarán"
+# Año actual
+anio_actual = datetime.now().year
+
+# Número de albarán automático
+numero_albaran = (
+    f"SANT-{anio_actual}-"
+    f"{st.session_state.contador_albaran:04d}"
 )
 
-fecha = st.date_input(
-    "📅 Fecha",
+# Mostrar albarán
+st.success(f"📄 Número de albarán: {numero_albaran}")
+
+st.divider()
+
+# =====================================================
+# DATOS DEL FORMULARIO
+# =====================================================
+
+trabajador = st.text_input(
+    "👷 Nombre del trabajador"
+)
+
+fecha_envio = st.date_input(
+    "📅 Fecha del informe",
     value=date.today()
 )
 
-trabajador = st.text_input(
-    "👷 Trabajador"
-)
-
 # =====================================================
-# PARTIDAS PRESUPUESTO
+# LISTADO DE TAREAS
 # =====================================================
 
-partidas = [
-    "Instalación eléctrica",
-    "Cuadros eléctricos",
-    "Iluminación",
-    "Canalizaciones",
-    "Cableado",
-    "Automatización",
-    "Domótica",
-    "Puesta a tierra",
-    "Protecciones eléctricas",
-    "Mano de obra",
-    "Material auxiliar",
-    "Otros"
+tareas = [
+    "Trazado y marcado de cajas, tubos y cuadros",
+    "Ejecución rozas en paredes y techos",
+    "Montaje de soportes",
+    "Colocación tubos y conductos",
+    "Tendido de cables",
+    "Identificación y etiquetado",
+    "Conexionado de cables en bornes o regletas",
+    "Instalación y conexionado de mecanismos",
+    "Fijación de carril DIN y mecanismos en cuadro eléctrico",
+    "Cableado interno del cuadro eléctrico",
+    "Configuración de equipos domóticos y/o automáticos",
+    "Conexionado de sensores/actuadores de equipos domóticos/automáticos",
+    "Pruebas de continuidad",
+    "Pruebas de aislamiento",
+    "Verificación de tierras",
+    "Programación del automatismo",
+    "Pruebas de funcionamiento"
 ]
 
-partida = st.selectbox(
-    "📂 Partida del presupuesto",
-    partidas
+tarea = st.selectbox(
+    "🛠️ Selecciona la tarea",
+    tareas
 )
 
 # =====================================================
-# GASTOS
+# ESTADO DE LAS TAREAS
 # =====================================================
 
-gasto = st.number_input(
-    "💸 Gastos de la partida (€)",
-    min_value=0.0,
-    step=0.01,
-    format="%.2f"
-)
+estados = [
+    "Avance de la tarea en torno al 25%",
+    "Avance de la tarea en torno al 50%",
+    "Avance de la tarea en torno al 75%",
+    "OK, finalizado sin errores",
+    "Finalizado, pero con errores pendientes",
+    "Finalizado y corregidos los errores"
+]
 
-# =====================================================
-# COMENTARIOS
-# =====================================================
-
-comentarios = st.text_area(
-    "📝 Comentarios",
-    height=120
+estado = st.selectbox(
+    "📊 Estado de la tarea",
+    estados
 )
 
 # =====================================================
@@ -108,32 +119,28 @@ comentarios = st.text_area(
 
 if st.button("➕ Añadir registro"):
 
-    if numero_albaran.strip() == "":
+    if trabajador.strip() == "":
 
         st.warning(
-            "⚠️ Introduce el número de albarán"
-        )
-
-    elif trabajador.strip() == "":
-
-        st.warning(
-            "⚠️ Introduce el nombre del trabajador"
+            "⚠️ Debes indicar el nombre del trabajador"
         )
 
     else:
 
         nuevo_registro = {
-            "Número Albarán": numero_albaran.strip(),
-            "Fecha": fecha,
-            "Trabajador": trabajador.strip(),
-            "Partida": partida,
-            "Gasto (€)": gasto,
-            "Comentarios": comentarios.strip()
+            "Albarán": numero_albaran,
+            "Trabajador": trabajador,
+            "Fecha": fecha_envio,
+            "Tarea": tarea,
+            "Estado": estado
         }
 
-        st.session_state.registros_presupuesto.append(
+        st.session_state.registros.append(
             nuevo_registro
         )
+
+        # Incrementar contador
+        st.session_state.contador_albaran += 1
 
         st.success(
             "✅ Registro añadido correctamente"
@@ -145,41 +152,22 @@ if st.button("➕ Añadir registro"):
 
 st.divider()
 
-st.header("📊 Registros guardados")
+st.subheader("📋 Registros guardados")
 
 df = pd.DataFrame(
-    st.session_state.registros_presupuesto
+    st.session_state.registros
 )
 
-if len(df) > 0:
-
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
-
-    # =================================================
-    # TOTAL GASTOS
-    # =================================================
-
-    total_gastos = df["Gasto (€)"].sum()
-
-    st.metric(
-        label="💰 Total gastos acumulados",
-        value=f"{total_gastos:.2f} €"
-    )
-
-else:
-
-    st.info(
-        "Todavía no hay registros."
-    )
+st.dataframe(
+    df,
+    use_container_width=True
+)
 
 # =====================================================
 # EXPORTAR A EXCEL
 # =====================================================
 
-nombre_excel = "seguimiento_presupuesto.xlsx"
+nombre_excel = "seguimiento_obra.xlsx"
 
 if len(df) > 0:
 
@@ -188,11 +176,11 @@ if len(df) > 0:
         index=False
     )
 
-    with open(nombre_excel, "rb") as archivo:
+    with open(nombre_excel, "rb") as archivo_excel:
 
         st.download_button(
             label="📥 Descargar Excel",
-            data=archivo,
+            data=archivo_excel,
             file_name=nombre_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
@@ -201,11 +189,21 @@ if len(df) > 0:
 # CONFIGURACIÓN EMAIL
 # =====================================================
 
-EMAIL_REMITENTE = "nunezs.daniel@alumnos25.fundacionmasaveu.com"
+# IMPORTANTE:
+# Sustituir por tu email Gmail
 
-PASSWORD_EMAIL = "zvbhfagykqjpjubo"
+EMAIL_REMITENTE = "tuemail@gmail.com"
 
-EMAIL_DESTINO = "ana@fundacionmasaveu.com"
+# IMPORTANTE:
+# Contraseña de aplicación Google
+# SIN espacios
+# SIN caracteres especiales raros
+
+PASSWORD_EMAIL = "abcdefghijklmnop"
+
+# Email empresa destino
+
+EMAIL_DESTINO = "empresa@correo.com"
 
 # =====================================================
 # FUNCIÓN ENVIAR EMAIL
@@ -213,50 +211,18 @@ EMAIL_DESTINO = "ana@fundacionmasaveu.com"
 
 def enviar_email():
 
-    remitente = str(
-        EMAIL_REMITENTE
-    ).strip()
-
-    password = str(
-        PASSWORD_EMAIL
-    ).strip()
-
-    # Soporta uno o varios correos
-    if isinstance(EMAIL_DESTINO, list):
-
-        destinatarios = [
-            str(x).strip()
-            for x in EMAIL_DESTINO
-        ]
-
-        destino_header = ", ".join(
-            destinatarios
-        )
-
-    else:
-
-        destinatarios = [
-            str(EMAIL_DESTINO).strip()
-        ]
-
-        destino_header = destinatarios[0]
-
-    # Crear email
     msg = EmailMessage()
 
-    msg["Subject"] = (
-        "Seguimiento de presupuesto"
-    )
-
-    msg["From"] = remitente
-
-    msg["To"] = destino_header
+    msg["Subject"] = "📊 Parte de obra"
+    msg["From"] = EMAIL_REMITENTE.strip()
+    msg["To"] = EMAIL_DESTINO.strip()
 
     msg.set_content(
-        "Adjunto Excel generado desde la app de seguimiento de presupuesto."
+        "Adjunto Excel generado desde la app de seguimiento de obra."
     )
 
     # Adjuntar Excel
+
     with open(nombre_excel, "rb") as f:
 
         contenido = f.read()
@@ -268,15 +234,16 @@ def enviar_email():
             filename=nombre_excel
         )
 
-    # Conectar Gmail
+    # Servidor Gmail
+
     with smtplib.SMTP_SSL(
         "smtp.gmail.com",
         465
     ) as smtp:
 
         smtp.login(
-            remitente,
-            password
+            EMAIL_REMITENTE.strip(),
+            PASSWORD_EMAIL.strip()
         )
 
         smtp.send_message(msg)
@@ -300,15 +267,15 @@ if len(df) > 0:
         except Exception as e:
 
             st.error(
-                f"❌ Error enviando correo: {e}"
+                f"❌ Error enviando email: {e}"
             )
 
 # =====================================================
-# PIE FINAL
+# INFORMACIÓN FINAL
 # =====================================================
 
 st.divider()
 
-st.caption(
-    "© SANTANO S.L. - Sistema de seguimiento y control de presupuesto."
+st.info(
+    "📱 Aplicación desarrollada en Streamlit para seguimiento de obra."
 )
